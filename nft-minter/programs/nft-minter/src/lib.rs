@@ -25,19 +25,3 @@ pub struct Initialize<'info> {
 pub struct MyData {
     pub data: [u8; 32],
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
