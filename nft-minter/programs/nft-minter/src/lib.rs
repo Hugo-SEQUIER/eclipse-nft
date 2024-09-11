@@ -13,7 +13,18 @@ pub mod nft_minter {
 }
 
 #[derive(Accounts)]
-pub struct Initialize {}
+pub struct Initialize<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    #[account(mut)]
+    pub rent_payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[account]
+pub struct MyData {
+    pub data: [u8; 32],
+}
 
 
 
