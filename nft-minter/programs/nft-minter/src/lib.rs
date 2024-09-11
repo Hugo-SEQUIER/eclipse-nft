@@ -10,12 +10,19 @@ declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
 pub mod nft_minter {
     use super::*;
 
-    pub fn mint_nft(
+    pub fn mint_nft_with_discord(
         ctx: Context<MintNFT>,
         name: String,
         symbol: String,
         uri: String,
+        discord_username: String,
     ) -> Result<()> {
+        // Validate input
+        require!(name.len() <= 32, NftError::NameTooLong);
+        require!(symbol.len() <= 10, NftError::SymbolTooLong);
+        require!(uri.len() <= 200, NftError::UriTooLong);
+        require!(discord_username.len() <= 32 && discord_username.len() >= 2, NftError::InvalidDiscordUsername);
+
         // Create mint account
         let cpi_context = CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -54,7 +61,7 @@ pub mod nft_minter {
             rent: None,
         }.instruction(mpl_instruction::CreateMetadataAccountV3InstructionArgs {
             data,
-            is_mutable: true,
+            is_mutable: false,
             collection_details: None,
         });
 
@@ -71,34 +78,9 @@ pub mod nft_minter {
             ],
         )?;
 
-        // Create master edition account
-        let ix = mpl_instruction::CreateMasterEditionV3 {
-            edition: ctx.accounts.master_edition.key(),
-            mint: ctx.accounts.mint.key(),
-            update_authority: ctx.accounts.payer.key(),
-            mint_authority: ctx.accounts.payer.key(),
-            payer: ctx.accounts.payer.key(),
-            metadata: ctx.accounts.metadata.key(),
-            token_program: ctx.accounts.token_program.key(),
-            system_program: ctx.accounts.system_program.key(),
-            rent: None,
-        }.instruction(mpl_instruction::CreateMasterEditionV3InstructionArgs {
-            max_supply: Some(0),
-        });
-
-        anchor_lang::solana_program::program::invoke(
-            &ix,
-            &[
-                ctx.accounts.master_edition.to_account_info(),
-                ctx.accounts.mint.to_account_info(),
-                ctx.accounts.payer.to_account_info(),
-                ctx.accounts.metadata.to_account_info(),
-                ctx.accounts.token_metadata_program.to_account_info(),
-                ctx.accounts.token_program.to_account_info(),
-                ctx.accounts.system_program.to_account_info(),
-                ctx.accounts.rent.to_account_info(),
-            ],
-        )?;
+        // Store Discord username
+        ctx.accounts.discord_info.discord_username = discord_username;
+        ctx.accounts.discord_info.owner = ctx.accounts.payer.key();
 
         Ok(())
     }
@@ -118,9 +100,6 @@ pub struct MintNFT<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     pub metadata: UncheckedAccount<'info>,
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    #[account(mut)]
-    pub master_edition: UncheckedAccount<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
     pub rent: Sysvar<'info, Rent>,
@@ -129,4 +108,30 @@ pub struct MintNFT<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     pub token_metadata_program: UncheckedAccount<'info>,
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + 32 + 32, // Discriminator + Pubkey + Discord username (max 32 chars)
+        seeds = [b"discord_info", mint.key().as_ref()],
+        bump
+    )]
+    pub discord_info: Account<'info, DiscordInfo>,
+}
+
+#[account]
+pub struct DiscordInfo {
+    pub owner: Pubkey,
+    pub discord_username: String,
+}
+
+#[error_code]
+pub enum NftError {
+    #[msg("Name is too long")]
+    NameTooLong,
+    #[msg("Symbol is too long")]
+    SymbolTooLong,
+    #[msg("URI is too long")]
+    UriTooLong,
+    #[msg("Invalid Discord username")]
+    InvalidDiscordUsername,
 }
