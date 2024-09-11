@@ -5,7 +5,7 @@ import { SalmonWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
 import {  useMemo, useCallback, useState } from 'react';
 import { Program, AnchorProvider, web3, utils } from '@project-serum/anchor';
-import idl from './nftminter.json';
+import idl from '../nftminter.json';
 require('@solana/wallet-adapter-react-ui/styles.css');
 require('./App.css');
 
