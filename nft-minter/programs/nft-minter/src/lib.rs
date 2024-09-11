@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use anchor_spl::associated_token::AssociatedToken;
-use mpl_token_metadata::instruction as mpl_instruction;
-use mpl_token_metadata::state::Creator;
+use mpl_token_metadata::instructions as mpl_instruction;
+use mpl_token_metadata::types::Creator;
 
 declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
 
@@ -34,24 +34,27 @@ pub mod nft_minter {
             share: 100,
         }];
 
-        let ix = mpl_instruction::create_metadata_accounts_v3(
-            mpl_token_metadata::ID,
-            ctx.accounts.metadata.key(),
-            ctx.accounts.mint.key(),
-            ctx.accounts.payer.key(),
-            ctx.accounts.payer.key(),
-            ctx.accounts.payer.key(),
-            name,
-            symbol,
-            uri,
-            Some(creator),
-            0,
-            true,
-            true,
-            None,
-            None,
-            None,
-        );
+        let ix = mpl_instruction::CreateMetadataAccountV3 {
+            metadata: ctx.accounts.metadata.key(),
+            mint: ctx.accounts.mint.key(),
+            mint_authority: ctx.accounts.payer.key(),
+            payer: ctx.accounts.payer.key(),
+            update_authority: ctx.accounts.payer.key(),
+            system_program: ctx.accounts.system_program.key(),
+            rent: None,
+        }.instruction(mpl_instruction::CreateMetadataAccountV3InstructionArgs {
+            data: mpl_token_metadata::types::DataV2 {
+                name,
+                symbol,
+                uri,
+                seller_fee_basis_points: 0,
+                creators: Some(creator),
+                collection: None,
+                uses: None,
+            },
+            is_mutable: true,
+            collection_details: None,
+        });
 
         anchor_lang::solana_program::program::invoke(
             &ix,
@@ -67,16 +70,19 @@ pub mod nft_minter {
         )?;
 
         // Create master edition account
-        let ix = mpl_instruction::create_master_edition_v3(
-            mpl_token_metadata::ID,
-            ctx.accounts.master_edition.key(),
-            ctx.accounts.mint.key(),
-            ctx.accounts.payer.key(),
-            ctx.accounts.payer.key(),
-            ctx.accounts.metadata.key(),
-            ctx.accounts.payer.key(),
-            Some(0),
-        );
+        let ix = mpl_instruction::CreateMasterEditionV3 {
+            edition: ctx.accounts.master_edition.key(),
+            mint: ctx.accounts.mint.key(),
+            update_authority: ctx.accounts.payer.key(),
+            mint_authority: ctx.accounts.payer.key(),
+            payer: ctx.accounts.payer.key(),
+            metadata: ctx.accounts.metadata.key(),
+            token_program: ctx.accounts.token_program.key(),
+            system_program: ctx.accounts.system_program.key(),
+            rent: None,
+        }.instruction(mpl_instruction::CreateMasterEditionV3InstructionArgs {
+            max_supply: Some(0),
+        });
 
         anchor_lang::solana_program::program::invoke(
             &ix,
