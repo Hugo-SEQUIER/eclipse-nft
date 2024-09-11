@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use anchor_spl::associated_token::AssociatedToken;
-use mpl_token_metadata::instruction as mpl_instruction;
-use mpl_token_metadata::state::DataV2;
+use mpl_token_metadata::instructions as mpl_instruction;
+use mpl_token_metadata::state::{Creator, DataV2};
 
 declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
 
@@ -28,7 +28,7 @@ pub mod nft_minter {
         token::mint_to(cpi_context, 1)?;
 
         // Create metadata account
-        let creator = vec![mpl_token_metadata::state::Creator {
+        let creator = vec![Creator {
             address: ctx.accounts.payer.key(),
             verified: false,
             share: 100,
