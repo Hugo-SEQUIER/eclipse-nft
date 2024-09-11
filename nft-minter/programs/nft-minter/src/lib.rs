@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use anchor_spl::associated_token::AssociatedToken;
-use mpl_token_metadata::instruction as mpl_instruction;
-use mpl_token_metadata::state::DataV2;
+use mpl_token_metadata::instructions as mpl_instruction;
+use mpl_token_metadata::types::DataV2;
 
 declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
 
@@ -28,7 +28,7 @@ pub mod nft_minter {
         token::mint_to(cpi_context, 1)?;
 
         // Create metadata account
-        let creator = vec![mpl_token_metadata::state::Creator {
+        let creator = vec![mpl_token_metadata::types::Creator {
             address: ctx.accounts.payer.key(),
             verified: false,
             share: 100,
@@ -51,11 +51,11 @@ pub mod nft_minter {
             payer: ctx.accounts.payer.key(),
             update_authority: ctx.accounts.payer.key(),
             system_program: ctx.accounts.system_program.key(),
-            rent: ctx.accounts.rent.key(),
+            rent: None,
         };
 
-        let ix = mpl_instruction::create_metadata_accounts_v3(
-            ctx.accounts.token_metadata_program.key(),
+        let ix = mpl_instruction::CreateMetadataAccountsV3Instruction::instruction(
+            mpl_token_metadata::ID,
             accounts,
             data_v2,
             true,
@@ -86,11 +86,11 @@ pub mod nft_minter {
             metadata: ctx.accounts.metadata.key(),
             token_program: ctx.accounts.token_program.key(),
             system_program: ctx.accounts.system_program.key(),
-            rent: ctx.accounts.rent.key(),
+            rent: None,
         };
 
-        let ix = mpl_instruction::create_master_edition_v3(
-            ctx.accounts.token_metadata_program.key(),
+        let ix = mpl_instruction::CreateMasterEditionV3Instruction::instruction(
+            mpl_token_metadata::ID,
             accounts,
             Some(0),
         );
