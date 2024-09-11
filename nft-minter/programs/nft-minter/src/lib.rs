@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use anchor_spl::associated_token::AssociatedToken;
-use mpl_token_metadata::instructions as mpl_instruction;
-use mpl_token_metadata::state::{Creator, DataV2};
+use mpl_token_metadata::instruction as mpl_instruction;
+use mpl_token_metadata::state::Creator;
 
 declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
 
@@ -34,16 +34,6 @@ pub mod nft_minter {
             share: 100,
         }];
 
-        let data_v2 = DataV2 {
-            name,
-            symbol,
-            uri,
-            seller_fee_basis_points: 0,
-            creators: Some(creator),
-            collection: None,
-            uses: None,
-        };
-
         let ix = mpl_instruction::create_metadata_accounts_v3(
             mpl_token_metadata::ID,
             ctx.accounts.metadata.key(),
@@ -51,7 +41,11 @@ pub mod nft_minter {
             ctx.accounts.payer.key(),
             ctx.accounts.payer.key(),
             ctx.accounts.payer.key(),
-            data_v2,
+            name,
+            symbol,
+            uri,
+            Some(creator),
+            0,
             true,
             true,
             None,
