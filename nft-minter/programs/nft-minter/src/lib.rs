@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use anchor_spl::associated_token::AssociatedToken;
 use mpl_token_metadata::instructions as mpl_instruction;
-use mpl_token_metadata::types::Creator;
+use mpl_token_metadata::types::{Creator, DataV2};
 
 declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
 
@@ -34,24 +34,26 @@ pub mod nft_minter {
             share: 100,
         }];
 
+        let data = DataV2 {
+            name,
+            symbol,
+            uri,
+            seller_fee_basis_points: 0,
+            creators: Some(creator),
+            collection: None,
+            uses: None,
+        };
+
         let ix = mpl_instruction::CreateMetadataAccountV3 {
             metadata: ctx.accounts.metadata.key(),
             mint: ctx.accounts.mint.key(),
             mint_authority: ctx.accounts.payer.key(),
             payer: ctx.accounts.payer.key(),
-            update_authority: ctx.accounts.payer.key(),
+            update_authority: (ctx.accounts.payer.key(), true),
             system_program: ctx.accounts.system_program.key(),
             rent: None,
         }.instruction(mpl_instruction::CreateMetadataAccountV3InstructionArgs {
-            data: mpl_token_metadata::types::DataV2 {
-                name,
-                symbol,
-                uri,
-                seller_fee_basis_points: 0,
-                creators: Some(creator),
-                collection: None,
-                uses: None,
-            },
+            data,
             is_mutable: true,
             collection_details: None,
         });
