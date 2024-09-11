@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use anchor_spl::associated_token::AssociatedToken;
-use mpl_token_metadata::state::{Creator, DataV2};
-use mpl_token_metadata::instructions::{CreateMetadataAccountsV3, CreateMasterEditionV3};
+use mpl_token_metadata::instruction as mpl_instruction;
+use mpl_token_metadata::state::DataV2;
 
 declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
 
@@ -28,7 +28,7 @@ pub mod nft_minter {
         token::mint_to(cpi_context, 1)?;
 
         // Create metadata account
-        let creator = vec![Creator {
+        let creator = vec![mpl_token_metadata::state::Creator {
             address: ctx.accounts.payer.key(),
             verified: false,
             share: 100,
@@ -44,44 +44,70 @@ pub mod nft_minter {
             uses: None,
         };
 
-        let cpi_context = CpiContext::new(
-            ctx.accounts.token_metadata_program.to_account_info(),
-            CreateMetadataAccountsV3 {
-                metadata: ctx.accounts.metadata.to_account_info(),
-                mint: ctx.accounts.mint.to_account_info(),
-                mint_authority: ctx.accounts.payer.to_account_info(),
-                payer: ctx.accounts.payer.to_account_info(),
-                update_authority: ctx.accounts.payer.to_account_info(),
-                system_program: ctx.accounts.system_program.to_account_info(),
-                rent: ctx.accounts.rent.to_account_info(),
-            },
-        );
+        let accounts = mpl_instruction::CreateMetadataAccountsV3 {
+            metadata: ctx.accounts.metadata.key(),
+            mint: ctx.accounts.mint.key(),
+            mint_authority: ctx.accounts.payer.key(),
+            payer: ctx.accounts.payer.key(),
+            update_authority: ctx.accounts.payer.key(),
+            system_program: ctx.accounts.system_program.key(),
+            rent: ctx.accounts.rent.key(),
+        };
 
-        mpl_token_metadata::instructions::create_metadata_accounts_v3(
-            cpi_context,
+        let ix = mpl_instruction::create_metadata_accounts_v3(
+            ctx.accounts.token_metadata_program.key(),
+            accounts,
             data_v2,
             true,
             true,
             None,
+        );
+
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                ctx.accounts.metadata.to_account_info(),
+                ctx.accounts.mint.to_account_info(),
+                ctx.accounts.payer.to_account_info(),
+                ctx.accounts.token_metadata_program.to_account_info(),
+                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.rent.to_account_info(),
+            ],
         )?;
 
         // Create master edition account
-        let cpi_context = CpiContext::new(
-            ctx.accounts.token_metadata_program.to_account_info(),
-            CreateMasterEditionV3 {
-                edition: ctx.accounts.master_edition.to_account_info(),
-                mint: ctx.accounts.mint.to_account_info(),
-                update_authority: ctx.accounts.payer.to_account_info(),
-                mint_authority: ctx.accounts.payer.to_account_info(),
-                payer: ctx.accounts.payer.to_account_info(),
-                metadata: ctx.accounts.metadata.to_account_info(),
-                token_program: ctx.accounts.token_program.to_account_info(),
-                system_program: ctx.accounts.system_program.to_account_info(),
-                rent: ctx.accounts.rent.to_account_info(),
-            },
+        let accounts = mpl_instruction::CreateMasterEditionV3 {
+            edition: ctx.accounts.master_edition.key(),
+            mint: ctx.accounts.mint.key(),
+            update_authority: ctx.accounts.payer.key(),
+            mint_authority: ctx.accounts.payer.key(),
+            payer: ctx.accounts.payer.key(),
+            metadata: ctx.accounts.metadata.key(),
+            token_program: ctx.accounts.token_program.key(),
+            system_program: ctx.accounts.system_program.key(),
+            rent: ctx.accounts.rent.key(),
+        };
+
+        let ix = mpl_instruction::create_master_edition_v3(
+            ctx.accounts.token_metadata_program.key(),
+            accounts,
+            Some(0),
         );
 
-        mpl_token_metadata::instructions::create_master_edition_v3(cpi_context, Some(0))?;
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                ctx.accounts.master_edition.to_account_info(),
+                ctx.accounts.mint.to_account_info(),
+                ctx.accounts.payer.to_account_info(),
+                ctx.accounts.metadata.to_account_info(),
+                ctx.accounts.token_metadata_program.to_account_info(),
+                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.rent.to_account_info(),
+            ],
+        )?;
 
         Ok(())
     }
