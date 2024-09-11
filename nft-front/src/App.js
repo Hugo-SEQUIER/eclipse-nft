@@ -5,7 +5,7 @@ import { SalmonWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
 import {  useMemo, useCallback, useState } from 'react';
 import { Program, AnchorProvider, web3, utils } from '@project-serum/anchor';
-import idl from '../nftminter.json';
+import idl from './nftminter.json';
 require('@solana/wallet-adapter-react-ui/styles.css');
 require('./App.css');
 
@@ -51,7 +51,7 @@ const Content = () => {
         if (!anchorWallet) return;
         const connection = new Connection("https://staging-rpc.dev2.eclipsenetwork.xyz", 'confirmed');
         const provider = new AnchorProvider(connection, anchorWallet, AnchorProvider.defaultOptions());
-        const programId = new PublicKey('28yv9AxVwUtw1HtDYin7JS3F3x1Z2G9cqAdowUb3iCs6');
+        const programId = new PublicKey('5DW9r6ndryJ9NiuUxCCBMCR8BcDxqeYUeRFEZ9Tzft5u');
         const program = new Program(idl, programId, provider);
 
         try {

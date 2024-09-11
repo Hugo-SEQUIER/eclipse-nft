@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-nft_minter = "84nGazRaquGTNsHMkcF7Zi4T6UzGverZ5ixLRJHtFLbg"
+nft_minter = "DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR"
 
 [registry]
 url = "https://api.devnet.solana.com"
