@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use anchor_spl::associated_token::AssociatedToken;
-use mpl_token_metadata::instructions as mpl_instruction;
-use mpl_token_metadata::types::DataV2;
+use mpl_token_metadata::instruction as mpl_instruction;
+use mpl_token_metadata::state::DataV2;
 
 declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
 
@@ -28,7 +28,7 @@ pub mod nft_minter {
         token::mint_to(cpi_context, 1)?;
 
         // Create metadata account
-        let creator = vec![mpl_token_metadata::types::Creator {
+        let creator = vec![mpl_token_metadata::state::Creator {
             address: ctx.accounts.payer.key(),
             verified: false,
             share: 100,
@@ -44,22 +44,18 @@ pub mod nft_minter {
             uses: None,
         };
 
-        let accounts = mpl_instruction::CreateMetadataAccountsV3 {
-            metadata: ctx.accounts.metadata.key(),
-            mint: ctx.accounts.mint.key(),
-            mint_authority: ctx.accounts.payer.key(),
-            payer: ctx.accounts.payer.key(),
-            update_authority: ctx.accounts.payer.key(),
-            system_program: ctx.accounts.system_program.key(),
-            rent: None,
-        };
-
-        let ix = mpl_instruction::CreateMetadataAccountsV3Instruction::instruction(
+        let ix = mpl_instruction::create_metadata_accounts_v3(
             mpl_token_metadata::ID,
-            accounts,
+            ctx.accounts.metadata.key(),
+            ctx.accounts.mint.key(),
+            ctx.accounts.payer.key(),
+            ctx.accounts.payer.key(),
+            ctx.accounts.payer.key(),
             data_v2,
             true,
             true,
+            None,
+            None,
             None,
         );
 
@@ -77,21 +73,14 @@ pub mod nft_minter {
         )?;
 
         // Create master edition account
-        let accounts = mpl_instruction::CreateMasterEditionV3 {
-            edition: ctx.accounts.master_edition.key(),
-            mint: ctx.accounts.mint.key(),
-            update_authority: ctx.accounts.payer.key(),
-            mint_authority: ctx.accounts.payer.key(),
-            payer: ctx.accounts.payer.key(),
-            metadata: ctx.accounts.metadata.key(),
-            token_program: ctx.accounts.token_program.key(),
-            system_program: ctx.accounts.system_program.key(),
-            rent: None,
-        };
-
-        let ix = mpl_instruction::CreateMasterEditionV3Instruction::instruction(
+        let ix = mpl_instruction::create_master_edition_v3(
             mpl_token_metadata::ID,
-            accounts,
+            ctx.accounts.master_edition.key(),
+            ctx.accounts.mint.key(),
+            ctx.accounts.payer.key(),
+            ctx.accounts.payer.key(),
+            ctx.accounts.metadata.key(),
+            ctx.accounts.payer.key(),
             Some(0),
         );
 
