@@ -4,7 +4,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use mpl_token_metadata::instructions as mpl_instruction;
 use mpl_token_metadata::types::{Creator, DataV2};
 
-declare_id!("DNxFQyTTC6k1HBHfcuGEhP28eT94aoRwjxT4o4TNbBkR");
+declare_id!("8bhThreQ94VxP4HY92BGu4TZoPMan1zfKsdP4bS1tCbV");
 
 #[program]
 pub mod nft_minter {
